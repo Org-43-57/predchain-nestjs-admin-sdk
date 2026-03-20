@@ -12,6 +12,8 @@ It intentionally does **not** include:
 - user settlement flows
 - CTF holder flows
 
+This SDK uses **generated TypeScript protobuf types** from the chain proto files.
+
 ## Supported transactions
 
 ### Market admin
@@ -54,6 +56,20 @@ It intentionally does **not** include:
 
 ```bash
 npm install @org-43-57/predchain-nestjs-admin-sdk
+```
+
+## Generated proto types
+
+The package exports the generated tx/query types for:
+- `predictionmarket.market.v1`
+- `predictionmarket.settlement.v1`
+- `predictionmarket.testnetmint.v1`
+- `predictionmarket.poa.v1`
+
+You can also regenerate them locally with:
+
+```bash
+npm run generate:protos
 ```
 
 ## Plain TypeScript usage

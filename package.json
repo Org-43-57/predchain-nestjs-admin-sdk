@@ -15,10 +15,12 @@
     "README.md"
   ],
   "scripts": {
+    "generate:protos": "bash scripts/generate-protos.sh",
     "build": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.8.0",
     "@nestjs/common": "^11.0.0",
     "@noble/curves": "^1.8.1",
     "@noble/hashes": "^1.8.0",
@@ -26,6 +28,7 @@
     "protobufjs": "^7.5.4"
   },
   "devDependencies": {
+    "ts-proto": "^2.11.5",
     "typescript": "^5.9.2"
   },
   "engines": {
