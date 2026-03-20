@@ -17,7 +17,8 @@
   "scripts": {
     "generate:protos": "bash scripts/generate-protos.sh",
     "build": "tsc -p tsconfig.json",
-    "type-check": "tsc -p tsconfig.json --noEmit"
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.8.0",

@@ -58,6 +58,11 @@ This SDK uses **generated TypeScript protobuf types** from the chain proto files
 npm install @org-43-57/predchain-nestjs-admin-sdk
 ```
 
+If you consume the SDK directly from this repo, it is still plug-and-play:
+- generated proto files are already committed
+- the package builds itself during install via `prepare`
+- the consumer app does not need to run any proto generation command
+
 ## Generated proto types
 
 The package exports the generated tx/query types for:
@@ -66,7 +71,7 @@ The package exports the generated tx/query types for:
 - `predictionmarket.testnetmint.v1`
 - `predictionmarket.poa.v1`
 
-You can also regenerate them locally with:
+Maintainers can also regenerate them locally with:
 
 ```bash
 npm run generate:protos
