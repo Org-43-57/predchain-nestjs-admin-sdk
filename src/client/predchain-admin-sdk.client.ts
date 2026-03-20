@@ -14,6 +14,7 @@ import {
   encodePauseSettlement,
   encodeResolveMarket,
   encodeSetMarketFee,
+  encodeSetParlayDefaultFee,
   encodeSetMatcherAuthorization,
   encodeSetValidatorSet,
   encodeUpdateMarketAdmin,
@@ -49,6 +50,7 @@ const DEFAULT_GAS_LIMITS: Record<string, number> = {
   "/predictionmarket.market.v1.MsgUpdateAdmin": 160_000,
   "/predictionmarket.market.v1.MsgPauseMarket": 150_000,
   "/predictionmarket.market.v1.MsgSetMarketFee": 150_000,
+  "/predictionmarket.market.v1.MsgSetParlayDefaultFee": 150_000,
   "/predictionmarket.market.v1.MsgResolveMarket": 220_000,
   "/predictionmarket.settlement.v1.MsgPauseSettlement": 150_000,
   "/predictionmarket.settlement.v1.MsgSetMatcherAuthorization": 150_000,
@@ -246,8 +248,8 @@ export class PredchainAdminSdkClient {
     return this.broadcast([encodeCreateMarket(authority, question, metadataUri, takerFeeBps)], options);
   }
 
-  async createParlayMarket(question: string, legs: ParlayLegInput[], metadataUri = "", takerFeeBps = 100, authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {
-    return this.broadcast([encodeCreateParlayMarket(authority, question, metadataUri, takerFeeBps, legs)], options);
+  async createParlayMarket(legs: ParlayLegInput[], takerFeeBps = 0, authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {
+    return this.broadcast([encodeCreateParlayMarket(authority, takerFeeBps, legs)], options);
   }
 
   async createNegRiskGroup(title: string, marketIds: Array<number | bigint>, metadataUri = "", authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {
@@ -264,6 +266,10 @@ export class PredchainAdminSdkClient {
 
   async setMarketFee(marketId: number | bigint, takerFeeBps: number, authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {
     return this.broadcast([encodeSetMarketFee(authority, marketId, takerFeeBps)], options);
+  }
+
+  async setParlayDefaultFee(defaultTakerFeeBps: number, authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {
+    return this.broadcast([encodeSetParlayDefaultFee(authority, defaultTakerFeeBps)], options);
   }
 
   async resolveMarket(marketId: number | bigint, winningOutcome: string, resolutionMetadataUri = "", authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {

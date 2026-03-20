@@ -132,8 +132,8 @@ export class AdminActionsService {
 ### `createMarket(question, metadataUri?, takerFeeBps?, authority?, options?)`
 Creates a new binary market with the configured admin key or an explicit authority override.
 
-### `createParlayMarket(question, legs, metadataUri?, takerFeeBps?, authority?, options?)`
-Creates a parlay market from underlying market legs.
+### `createParlayMarket(legs, takerFeeBps?, authority?, options?)`
+Creates a parlay market from underlying market legs. The chain derives the parlay question from the leg markets, and the default fee path is used when `takerFeeBps` is `0`.
 
 ### `createNegRiskGroup(title, marketIds, metadataUri?, authority?, options?)`
 Creates a neg-risk group and attaches the provided markets.
@@ -146,6 +146,9 @@ Pauses or unpauses one market.
 
 ### `setMarketFee(marketId, takerFeeBps, authority?, options?)`
 Updates the taker fee for one market.
+
+### `setParlayDefaultFee(defaultTakerFeeBps, authority?, options?)`
+Updates the default taker fee used when explicit or on-demand parlay creation does not pass a fee.
 
 ### `resolveMarket(marketId, winningOutcome, resolutionMetadataUri?, authority?, options?)`
 Resolves a market to its winning outcome.

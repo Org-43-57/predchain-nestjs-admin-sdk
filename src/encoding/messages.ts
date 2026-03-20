@@ -6,6 +6,7 @@ import {
   MsgPauseMarket,
   MsgResolveMarket,
   MsgSetMarketFee,
+  MsgSetParlayDefaultFee,
   MsgUpdateAdmin as MarketMsgUpdateAdmin,
   MsgUpdateNegRiskGroup,
   ParlayLeg,
@@ -94,15 +95,11 @@ export function encodeCreateMarket(
 
 export function encodeCreateParlayMarket(
   authority: string,
-  question: string,
-  metadataUri: string,
   takerFeeBps: number,
   legs: ParlayLegInput[],
 ): EncodedPredchainMessage {
   const message = MsgCreateParlayMarket.fromPartial({
     authority: normalizeAddress(authority),
-    question,
-    metadataUri,
     takerFeeBps,
     legs: toParlayLegs(legs),
   });
@@ -173,6 +170,17 @@ export function encodeSetMarketFee(
     takerFeeBps,
   });
   return encoded(`/${MARKET}.MsgSetMarketFee`, authority, MsgSetMarketFee, message);
+}
+
+export function encodeSetParlayDefaultFee(
+  authority: string,
+  defaultTakerFeeBps: number,
+): EncodedPredchainMessage {
+  const message = MsgSetParlayDefaultFee.fromPartial({
+    authority: normalizeAddress(authority),
+    defaultTakerFeeBps,
+  });
+  return encoded(`/${MARKET}.MsgSetParlayDefaultFee`, authority, MsgSetParlayDefaultFee, message);
 }
 
 export function encodeResolveMarket(

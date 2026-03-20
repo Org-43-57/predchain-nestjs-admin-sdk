@@ -33,6 +33,28 @@ export interface Order {
   signature: Uint8Array;
 }
 
+export interface ParlayOrderLeg {
+  marketId: bigint;
+  requiredOutcome: string;
+}
+
+export interface ParlayOrder {
+  salt: bigint;
+  maker: string;
+  signer: string;
+  taker: string;
+  legs: ParlayOrderLeg[];
+  positionSide: string;
+  makerAmount: string;
+  takerAmount: string;
+  expiration: bigint;
+  nonce: bigint;
+  feeRateBps: number;
+  side: string;
+  signatureType: string;
+  signature: Uint8Array;
+}
+
 export interface MsgMatchOrders {
   submitter: string;
   takerOrder?: Order | undefined;
@@ -43,6 +65,25 @@ export interface MsgMatchOrders {
 }
 
 export interface MsgMatchOrdersResponse {
+  matchType: string;
+  refunds: string[];
+  feeCollected: string;
+}
+
+export interface MsgEnsureParlayAndMatchOrders {
+  submitter: string;
+  takerOrder?: ParlayOrder | undefined;
+  makerOrders: ParlayOrder[];
+  takerFillAmount: string;
+  makerFillAmounts: string[];
+  surplusRecipient: string;
+}
+
+export interface MsgEnsureParlayAndMatchOrdersResponse {
+  parlayMarketId: bigint;
+  yesPositionId: string;
+  noPositionId: string;
+  created: boolean;
   matchType: string;
   refunds: string[];
   feeCollected: string;
@@ -412,6 +453,293 @@ export const Order: MessageFns<Order> = {
   },
 };
 
+function createBaseParlayOrderLeg(): ParlayOrderLeg {
+  return { marketId: 0n, requiredOutcome: "" };
+}
+
+export const ParlayOrderLeg: MessageFns<ParlayOrderLeg> = {
+  encode(message: ParlayOrderLeg, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.marketId !== 0n) {
+      if (BigInt.asUintN(64, message.marketId) !== message.marketId) {
+        throw new globalThis.Error("value provided for field message.marketId of type uint64 too large");
+      }
+      writer.uint32(8).uint64(message.marketId);
+    }
+    if (message.requiredOutcome !== "") {
+      writer.uint32(18).string(message.requiredOutcome);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ParlayOrderLeg {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParlayOrderLeg();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.marketId = reader.uint64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.requiredOutcome = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create<I extends Exact<DeepPartial<ParlayOrderLeg>, I>>(base?: I): ParlayOrderLeg {
+    return ParlayOrderLeg.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ParlayOrderLeg>, I>>(object: I): ParlayOrderLeg {
+    const message = createBaseParlayOrderLeg();
+    message.marketId = object.marketId ?? 0n;
+    message.requiredOutcome = object.requiredOutcome ?? "";
+    return message;
+  },
+};
+
+function createBaseParlayOrder(): ParlayOrder {
+  return {
+    salt: 0n,
+    maker: "",
+    signer: "",
+    taker: "",
+    legs: [],
+    positionSide: "",
+    makerAmount: "",
+    takerAmount: "",
+    expiration: 0n,
+    nonce: 0n,
+    feeRateBps: 0,
+    side: "",
+    signatureType: "",
+    signature: new Uint8Array(0),
+  };
+}
+
+export const ParlayOrder: MessageFns<ParlayOrder> = {
+  encode(message: ParlayOrder, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.salt !== 0n) {
+      if (BigInt.asUintN(64, message.salt) !== message.salt) {
+        throw new globalThis.Error("value provided for field message.salt of type uint64 too large");
+      }
+      writer.uint32(8).uint64(message.salt);
+    }
+    if (message.maker !== "") {
+      writer.uint32(18).string(message.maker);
+    }
+    if (message.signer !== "") {
+      writer.uint32(26).string(message.signer);
+    }
+    if (message.taker !== "") {
+      writer.uint32(34).string(message.taker);
+    }
+    for (const v of message.legs) {
+      ParlayOrderLeg.encode(v!, writer.uint32(42).fork()).join();
+    }
+    if (message.positionSide !== "") {
+      writer.uint32(50).string(message.positionSide);
+    }
+    if (message.makerAmount !== "") {
+      writer.uint32(58).string(message.makerAmount);
+    }
+    if (message.takerAmount !== "") {
+      writer.uint32(66).string(message.takerAmount);
+    }
+    if (message.expiration !== 0n) {
+      if (BigInt.asIntN(64, message.expiration) !== message.expiration) {
+        throw new globalThis.Error("value provided for field message.expiration of type int64 too large");
+      }
+      writer.uint32(72).int64(message.expiration);
+    }
+    if (message.nonce !== 0n) {
+      if (BigInt.asUintN(64, message.nonce) !== message.nonce) {
+        throw new globalThis.Error("value provided for field message.nonce of type uint64 too large");
+      }
+      writer.uint32(80).uint64(message.nonce);
+    }
+    if (message.feeRateBps !== 0) {
+      writer.uint32(88).uint32(message.feeRateBps);
+    }
+    if (message.side !== "") {
+      writer.uint32(98).string(message.side);
+    }
+    if (message.signatureType !== "") {
+      writer.uint32(106).string(message.signatureType);
+    }
+    if (message.signature.length !== 0) {
+      writer.uint32(114).bytes(message.signature);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ParlayOrder {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParlayOrder();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.salt = reader.uint64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.maker = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.signer = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.taker = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.legs.push(ParlayOrderLeg.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.positionSide = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.makerAmount = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.takerAmount = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.expiration = reader.int64() as bigint;
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.nonce = reader.uint64() as bigint;
+          continue;
+        }
+        case 11: {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.feeRateBps = reader.uint32();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.side = reader.string();
+          continue;
+        }
+        case 13: {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.signatureType = reader.string();
+          continue;
+        }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.signature = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create<I extends Exact<DeepPartial<ParlayOrder>, I>>(base?: I): ParlayOrder {
+    return ParlayOrder.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ParlayOrder>, I>>(object: I): ParlayOrder {
+    const message = createBaseParlayOrder();
+    message.salt = object.salt ?? 0n;
+    message.maker = object.maker ?? "";
+    message.signer = object.signer ?? "";
+    message.taker = object.taker ?? "";
+    message.legs = object.legs?.map((e) => ParlayOrderLeg.fromPartial(e)) || [];
+    message.positionSide = object.positionSide ?? "";
+    message.makerAmount = object.makerAmount ?? "";
+    message.takerAmount = object.takerAmount ?? "";
+    message.expiration = object.expiration ?? 0n;
+    message.nonce = object.nonce ?? 0n;
+    message.feeRateBps = object.feeRateBps ?? 0;
+    message.side = object.side ?? "";
+    message.signatureType = object.signatureType ?? "";
+    message.signature = object.signature ?? new Uint8Array(0);
+    return message;
+  },
+};
+
 function createBaseMsgMatchOrders(): MsgMatchOrders {
   return {
     submitter: "",
@@ -590,6 +918,256 @@ export const MsgMatchOrdersResponse: MessageFns<MsgMatchOrdersResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<MsgMatchOrdersResponse>, I>>(object: I): MsgMatchOrdersResponse {
     const message = createBaseMsgMatchOrdersResponse();
+    message.matchType = object.matchType ?? "";
+    message.refunds = object.refunds?.map((e) => e) || [];
+    message.feeCollected = object.feeCollected ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgEnsureParlayAndMatchOrders(): MsgEnsureParlayAndMatchOrders {
+  return {
+    submitter: "",
+    takerOrder: undefined,
+    makerOrders: [],
+    takerFillAmount: "",
+    makerFillAmounts: [],
+    surplusRecipient: "",
+  };
+}
+
+export const MsgEnsureParlayAndMatchOrders: MessageFns<MsgEnsureParlayAndMatchOrders> = {
+  encode(message: MsgEnsureParlayAndMatchOrders, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.submitter !== "") {
+      writer.uint32(10).string(message.submitter);
+    }
+    if (message.takerOrder !== undefined) {
+      ParlayOrder.encode(message.takerOrder, writer.uint32(18).fork()).join();
+    }
+    for (const v of message.makerOrders) {
+      ParlayOrder.encode(v!, writer.uint32(26).fork()).join();
+    }
+    if (message.takerFillAmount !== "") {
+      writer.uint32(34).string(message.takerFillAmount);
+    }
+    for (const v of message.makerFillAmounts) {
+      writer.uint32(42).string(v!);
+    }
+    if (message.surplusRecipient !== "") {
+      writer.uint32(50).string(message.surplusRecipient);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgEnsureParlayAndMatchOrders {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgEnsureParlayAndMatchOrders();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.submitter = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.takerOrder = ParlayOrder.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.makerOrders.push(ParlayOrder.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.takerFillAmount = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.makerFillAmounts.push(reader.string());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.surplusRecipient = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create<I extends Exact<DeepPartial<MsgEnsureParlayAndMatchOrders>, I>>(base?: I): MsgEnsureParlayAndMatchOrders {
+    return MsgEnsureParlayAndMatchOrders.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MsgEnsureParlayAndMatchOrders>, I>>(
+    object: I,
+  ): MsgEnsureParlayAndMatchOrders {
+    const message = createBaseMsgEnsureParlayAndMatchOrders();
+    message.submitter = object.submitter ?? "";
+    message.takerOrder = (object.takerOrder !== undefined && object.takerOrder !== null)
+      ? ParlayOrder.fromPartial(object.takerOrder)
+      : undefined;
+    message.makerOrders = object.makerOrders?.map((e) => ParlayOrder.fromPartial(e)) || [];
+    message.takerFillAmount = object.takerFillAmount ?? "";
+    message.makerFillAmounts = object.makerFillAmounts?.map((e) => e) || [];
+    message.surplusRecipient = object.surplusRecipient ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgEnsureParlayAndMatchOrdersResponse(): MsgEnsureParlayAndMatchOrdersResponse {
+  return {
+    parlayMarketId: 0n,
+    yesPositionId: "",
+    noPositionId: "",
+    created: false,
+    matchType: "",
+    refunds: [],
+    feeCollected: "",
+  };
+}
+
+export const MsgEnsureParlayAndMatchOrdersResponse: MessageFns<MsgEnsureParlayAndMatchOrdersResponse> = {
+  encode(message: MsgEnsureParlayAndMatchOrdersResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.parlayMarketId !== 0n) {
+      if (BigInt.asUintN(64, message.parlayMarketId) !== message.parlayMarketId) {
+        throw new globalThis.Error("value provided for field message.parlayMarketId of type uint64 too large");
+      }
+      writer.uint32(8).uint64(message.parlayMarketId);
+    }
+    if (message.yesPositionId !== "") {
+      writer.uint32(18).string(message.yesPositionId);
+    }
+    if (message.noPositionId !== "") {
+      writer.uint32(26).string(message.noPositionId);
+    }
+    if (message.created !== false) {
+      writer.uint32(32).bool(message.created);
+    }
+    if (message.matchType !== "") {
+      writer.uint32(42).string(message.matchType);
+    }
+    for (const v of message.refunds) {
+      writer.uint32(50).string(v!);
+    }
+    if (message.feeCollected !== "") {
+      writer.uint32(58).string(message.feeCollected);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgEnsureParlayAndMatchOrdersResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgEnsureParlayAndMatchOrdersResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.parlayMarketId = reader.uint64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.yesPositionId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.noPositionId = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.created = reader.bool();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.matchType = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.refunds.push(reader.string());
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.feeCollected = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create<I extends Exact<DeepPartial<MsgEnsureParlayAndMatchOrdersResponse>, I>>(
+    base?: I,
+  ): MsgEnsureParlayAndMatchOrdersResponse {
+    return MsgEnsureParlayAndMatchOrdersResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MsgEnsureParlayAndMatchOrdersResponse>, I>>(
+    object: I,
+  ): MsgEnsureParlayAndMatchOrdersResponse {
+    const message = createBaseMsgEnsureParlayAndMatchOrdersResponse();
+    message.parlayMarketId = object.parlayMarketId ?? 0n;
+    message.yesPositionId = object.yesPositionId ?? "";
+    message.noPositionId = object.noPositionId ?? "";
+    message.created = object.created ?? false;
     message.matchType = object.matchType ?? "";
     message.refunds = object.refunds?.map((e) => e) || [];
     message.feeCollected = object.feeCollected ?? "";

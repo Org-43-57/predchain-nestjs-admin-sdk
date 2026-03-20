@@ -30,8 +30,6 @@ export interface MsgCreateMarketResponse {
 
 export interface MsgCreateParlayMarket {
   authority: string;
-  question: string;
-  metadataUri: string;
   takerFeeBps: number;
   legs: ParlayLeg[];
 }
@@ -117,6 +115,14 @@ export interface MsgSetMarketFee {
 }
 
 export interface MsgSetMarketFeeResponse {
+}
+
+export interface MsgSetParlayDefaultFee {
+  authority: string;
+  defaultTakerFeeBps: number;
+}
+
+export interface MsgSetParlayDefaultFeeResponse {
 }
 
 export interface MsgResolveMarket {
@@ -358,19 +364,13 @@ export const MsgCreateMarketResponse: MessageFns<MsgCreateMarketResponse> = {
 };
 
 function createBaseMsgCreateParlayMarket(): MsgCreateParlayMarket {
-  return { authority: "", question: "", metadataUri: "", takerFeeBps: 0, legs: [] };
+  return { authority: "", takerFeeBps: 0, legs: [] };
 }
 
 export const MsgCreateParlayMarket: MessageFns<MsgCreateParlayMarket> = {
   encode(message: MsgCreateParlayMarket, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.authority !== "") {
       writer.uint32(10).string(message.authority);
-    }
-    if (message.question !== "") {
-      writer.uint32(18).string(message.question);
-    }
-    if (message.metadataUri !== "") {
-      writer.uint32(26).string(message.metadataUri);
     }
     if (message.takerFeeBps !== 0) {
       writer.uint32(40).uint32(message.takerFeeBps);
@@ -394,22 +394,6 @@ export const MsgCreateParlayMarket: MessageFns<MsgCreateParlayMarket> = {
           }
 
           message.authority = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.question = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.metadataUri = reader.string();
           continue;
         }
         case 5: {
@@ -443,8 +427,6 @@ export const MsgCreateParlayMarket: MessageFns<MsgCreateParlayMarket> = {
   fromPartial<I extends Exact<DeepPartial<MsgCreateParlayMarket>, I>>(object: I): MsgCreateParlayMarket {
     const message = createBaseMsgCreateParlayMarket();
     message.authority = object.authority ?? "";
-    message.question = object.question ?? "";
-    message.metadataUri = object.metadataUri ?? "";
     message.takerFeeBps = object.takerFeeBps ?? 0;
     message.legs = object.legs?.map((e) => ParlayLeg.fromPartial(e)) || [];
     return message;
@@ -1502,6 +1484,98 @@ export const MsgSetMarketFeeResponse: MessageFns<MsgSetMarketFeeResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<MsgSetMarketFeeResponse>, I>>(_: I): MsgSetMarketFeeResponse {
     const message = createBaseMsgSetMarketFeeResponse();
+    return message;
+  },
+};
+
+function createBaseMsgSetParlayDefaultFee(): MsgSetParlayDefaultFee {
+  return { authority: "", defaultTakerFeeBps: 0 };
+}
+
+export const MsgSetParlayDefaultFee: MessageFns<MsgSetParlayDefaultFee> = {
+  encode(message: MsgSetParlayDefaultFee, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.authority !== "") {
+      writer.uint32(10).string(message.authority);
+    }
+    if (message.defaultTakerFeeBps !== 0) {
+      writer.uint32(16).uint32(message.defaultTakerFeeBps);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSetParlayDefaultFee {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetParlayDefaultFee();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.authority = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.defaultTakerFeeBps = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create<I extends Exact<DeepPartial<MsgSetParlayDefaultFee>, I>>(base?: I): MsgSetParlayDefaultFee {
+    return MsgSetParlayDefaultFee.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MsgSetParlayDefaultFee>, I>>(object: I): MsgSetParlayDefaultFee {
+    const message = createBaseMsgSetParlayDefaultFee();
+    message.authority = object.authority ?? "";
+    message.defaultTakerFeeBps = object.defaultTakerFeeBps ?? 0;
+    return message;
+  },
+};
+
+function createBaseMsgSetParlayDefaultFeeResponse(): MsgSetParlayDefaultFeeResponse {
+  return {};
+}
+
+export const MsgSetParlayDefaultFeeResponse: MessageFns<MsgSetParlayDefaultFeeResponse> = {
+  encode(_: MsgSetParlayDefaultFeeResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MsgSetParlayDefaultFeeResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetParlayDefaultFeeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create<I extends Exact<DeepPartial<MsgSetParlayDefaultFeeResponse>, I>>(base?: I): MsgSetParlayDefaultFeeResponse {
+    return MsgSetParlayDefaultFeeResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MsgSetParlayDefaultFeeResponse>, I>>(_: I): MsgSetParlayDefaultFeeResponse {
+    const message = createBaseMsgSetParlayDefaultFeeResponse();
     return message;
   },
 };
