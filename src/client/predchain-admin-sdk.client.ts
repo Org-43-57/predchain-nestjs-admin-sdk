@@ -4,6 +4,7 @@ import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { Any } from "cosmjs-types/google/protobuf/any";
 
 import {
+  encodeApproveAgentBySig,
   encodeAdminBurnUsdc,
   encodeAdminMintUsdc,
   encodeCreateMarket,
@@ -52,6 +53,7 @@ const DEFAULT_GAS_LIMITS: Record<string, number> = {
   "/predictionmarket.market.v1.MsgSetMarketFee": 150_000,
   "/predictionmarket.market.v1.MsgSetParlayDefaultFee": 150_000,
   "/predictionmarket.market.v1.MsgResolveMarket": 220_000,
+  "/predictionmarket.settlement.v1.MsgApproveAgentBySig": 180_000,
   "/predictionmarket.settlement.v1.MsgPauseSettlement": 150_000,
   "/predictionmarket.settlement.v1.MsgSetMatcherAuthorization": 150_000,
   "/predictionmarket.testnetmint.v1.MsgAdminMintUSDC": 180_000,
@@ -286,6 +288,21 @@ export class PredchainAdminSdkClient {
 
   async setMatcherAuthorization(matcher: string, allowed: boolean, authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {
     return this.broadcast([encodeSetMatcherAuthorization(authority, matcher, allowed)], options);
+  }
+
+  async approveAgentBySig(
+    principal: string,
+    agent: string,
+    nonce: number | bigint,
+    deadlineUnix: number | bigint,
+    signature: string | Uint8Array,
+    submitter = this.signerAddress,
+    options: TxBroadcastOptions = {},
+  ): Promise<TxSubmission> {
+    return this.broadcast(
+      [encodeApproveAgentBySig(submitter, principal, agent, nonce, deadlineUnix, signature)],
+      options,
+    );
   }
 
   async adminMintUsdc(to: string, amount: string, authority = this.signerAddress, options: TxBroadcastOptions = {}): Promise<TxSubmission> {

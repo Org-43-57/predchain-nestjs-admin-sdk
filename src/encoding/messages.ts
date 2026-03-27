@@ -17,6 +17,7 @@ import {
   ValidatorSlot,
 } from "../gen/predictionmarket/poa/v1/tx";
 import {
+  MsgApproveAgentBySig,
   MsgPauseSettlement,
   MsgSetMatcherAuthorization,
 } from "../gen/predictionmarket/settlement/v1/tx";
@@ -45,6 +46,10 @@ function encoded<T>(
     signerAddress: normalizeAddress(signerAddress),
     value: encoder.encode(message).finish(),
   };
+}
+
+function toBytes(value: string | Uint8Array): Uint8Array {
+  return typeof value === "string" ? decodeHex(value) : value;
 }
 
 function toParlayLegs(legs: ParlayLegInput[]): ParlayLeg[] {
@@ -217,6 +222,25 @@ export function encodeSetMatcherAuthorization(
     allowed,
   });
   return encoded(`/${SETTLEMENT}.MsgSetMatcherAuthorization`, authority, MsgSetMatcherAuthorization, message);
+}
+
+export function encodeApproveAgentBySig(
+  submitter: string,
+  principal: string,
+  agent: string,
+  nonce: number | bigint,
+  deadlineUnix: number | bigint,
+  signature: string | Uint8Array,
+): EncodedPredchainMessage {
+  const message = MsgApproveAgentBySig.fromPartial({
+    submitter: normalizeAddress(submitter),
+    principal: normalizeAddress(principal),
+    agent: normalizeAddress(agent),
+    nonce: BigInt(nonce),
+    deadlineUnix: BigInt(deadlineUnix),
+    signature: toBytes(signature),
+  });
+  return encoded(`/${SETTLEMENT}.MsgApproveAgentBySig`, submitter, MsgApproveAgentBySig, message);
 }
 
 export function encodeAdminMintUsdc(
